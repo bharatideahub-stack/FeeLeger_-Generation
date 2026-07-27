@@ -27,34 +27,38 @@ function LedgerPreview({ data }: { data: any }) {
     <div className="ledger-preview bg-white" style={{ width: '100%', fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '13px' }}>
 
       {/* Header */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginBottom: 0 }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: 'none', marginBottom: 0 }}>
         <colgroup>
           <col style={{ width: '20%' }} />
-          <col style={{ width: '64%' }} />
-          <col style={{ width: '16%' }} />
+          <col style={{ width: '62%' }} />
+          <col style={{ width: '18%' }} />
         </colgroup>
         <tbody>
           <tr>
-            <td style={{ width: '20%', border: '1px solid #000', padding: '8px', verticalAlign: 'top' }}>
+            <td style={{ width: '20%', border: 'none', padding: '8px', verticalAlign: 'top' }}>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px', lineHeight: '1.4' }}>AURORA HIGHER EDUCATION</div>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px' }}>AND RESEARCH ACADEMY</div>
               <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Sponsored by Pragathi Educational Society, Regd. Est. 1991)</div>
               <div style={{ fontSize: '9px', lineHeight: '1.5' }}>Autonomous Institution - NAAC Accredited</div>
               <div style={{ fontSize: '9px', lineHeight: '1.5' }}>(ETML, UGC) EAPCET Code - 1044</div>
             </td>
-            <td style={{ textAlign: 'center', border: '1px solid #000', padding: '14px' }}>
+            <td style={{ textAlign: 'center', border: 'none', padding: '14px' }}>
               <span style={{ fontSize: '28px', fontWeight: 'bold', letterSpacing: '3px' }}>FEE LEDGER</span>
             </td>
-            <td style={{ width: '16%', border: '1px solid #000', padding: '8px', textAlign: 'center' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '17px', color: '#1e3a8a', letterSpacing: '2px' }}>AURORA</div>
-              <div style={{ fontSize: '9px', color: '#666' }}>Higher Education</div>
+            <td style={{ width: '18%', border: 'none', padding: '4px 0 4px 4px' }}>
+              <img
+                src="/aurora-logo.jpg"
+                alt="Aurora Higher Education and Research Academy"
+                style={{ display: 'block', marginLeft: 'auto', maxWidth: '100%', maxHeight: '78px', objectFit: 'contain' }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+              />
             </td>
           </tr>
         </tbody>
       </table>
 
       {/* Student Info */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', borderTop: 'none' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
         <colgroup>
           <col style={{ width: '13%' }} />
           <col style={{ width: '37%' }} />
@@ -79,7 +83,7 @@ function LedgerPreview({ data }: { data: any }) {
       </table>
 
       {/* Deposit Section */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', borderTop: 'none' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
         <colgroup>
           <col style={{ width: '12%' }} /><col style={{ width: '11%' }} /><col style={{ width: '21%' }} /><col style={{ width: '6%' }} />
           <col style={{ width: '12%' }} /><col style={{ width: '11%' }} /><col style={{ width: '21%' }} /><col style={{ width: '6%' }} />
@@ -117,7 +121,7 @@ function LedgerPreview({ data }: { data: any }) {
       ))}
 
       {/* Summary */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', borderTop: 'none', marginTop: '4px' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
         <colgroup>
           <col style={{ width: '3%' }} />
           <col style={{ width: '14%' }} />
@@ -173,7 +177,7 @@ function YearSection({ yearSection }: { yearSection: any }) {
   });
 
   return (
-    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', borderTop: 'none' }}>
+    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
       <colgroup>
         <col style={{ width: '15%' }} />
         <col style={{ width: '7%' }} />
