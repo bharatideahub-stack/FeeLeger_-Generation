@@ -1,14 +1,20 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../api/client';
-import { Search, ChevronLeft, ChevronRight, User } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { Search, ChevronLeft, ChevronRight, User, Trash2 } from 'lucide-react';
 
 export default function Students() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [school, setSchool] = useState('');
   const [program, setProgram] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+
+  const canDelete = user?.role === 'superadmin' || user?.role === 'admin';
 
   const { data: filters } = useQuery({
     queryKey: ['student-filters'],
@@ -18,6 +24,15 @@ export default function Students() {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['students', page, search, school, program],
     queryFn: () => api.get('/students', { params: { page, limit: 20, search, school, program } }).then(r => r.data)
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (regNo: string) => api.delete(`/students/${regNo}`),
+    onSuccess: () => {
+      setConfirmDelete(null);
+      queryClient.invalidateQueries({ queryKey: ['students'] });
+    },
+    onError: () => setConfirmDelete(null)
   });
 
   const handleSearch = (e: React.FormEvent) => {
@@ -76,13 +91,14 @@ export default function Students() {
               <th>Program</th>
               <th>Campus</th>
               <th>Date of Joining</th>
+              {canDelete && <th></th>}
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={7} className="text-center py-10 text-gray-400">Loading...</td></tr>
+              <tr><td colSpan={canDelete ? 8 : 7} className="text-center py-10 text-gray-400">Loading...</td></tr>
             ) : !data?.students?.length ? (
-              <tr><td colSpan={7} className="text-center py-10 text-gray-400">No students found</td></tr>
+              <tr><td colSpan={canDelete ? 8 : 7} className="text-center py-10 text-gray-400">No students found</td></tr>
             ) : (
               data.students.map((s: any) => (
                 <tr key={s.id}>
@@ -93,6 +109,36 @@ export default function Students() {
                   <td>{s.program}</td>
                   <td>{s.campus}</td>
                   <td>{s.date_of_joining ? new Date(s.date_of_joining).toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'}) : '-'}</td>
+                  {canDelete && (
+                    <td className="text-right">
+                      {confirmDelete === s.registration_no ? (
+                        <div className="flex items-center gap-1.5 justify-end">
+                          <span className="text-xs text-gray-500">Delete?</span>
+                          <button
+                            className="text-xs font-medium text-red-600 hover:text-red-700"
+                            onClick={() => deleteMutation.mutate(s.registration_no)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            className="text-xs font-medium text-gray-500 hover:text-gray-700"
+                            onClick={() => setConfirmDelete(null)}
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          className="text-gray-400 hover:text-red-600 transition-colors"
+                          title="Delete student"
+                          onClick={() => setConfirmDelete(s.registration_no)}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))
             )}

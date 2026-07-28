@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { getDb } from '../database/db';
-import { authenticate, AuthRequest } from '../middleware/auth';
+import { authenticate, requireRole, AuthRequest } from '../middleware/auth';
 
 const router = Router();
 router.use(authenticate);
@@ -93,6 +93,19 @@ router.put('/:regNo', async (req: AuthRequest, res: Response) => {
     req.user!.id, req.user!.username, 'UPDATE_STUDENT', 'students', req.params.regNo, JSON.stringify(old), JSON.stringify(req.body));
 
   res.json({ message: 'Student updated' });
+});
+
+// DELETE /api/students/:regNo - remove a student and all related fee/transaction/deposit/adjustment records
+router.delete('/:regNo', requireRole('superadmin', 'admin'), async (req: AuthRequest, res: Response) => {
+  const db = getDb();
+  const existing = await db.get('SELECT * FROM students WHERE registration_no = ?', req.params.regNo);
+  if (!existing) { res.status(404).json({ error: 'Student not found' }); return; }
+
+  await db.run('DELETE FROM students WHERE registration_no = ?', req.params.regNo);
+  await db.run(`INSERT INTO audit_logs (user_id, username, action, table_name, record_id, old_value) VALUES (?, ?, ?, ?, ?, ?)`,
+    req.user!.id, req.user!.username, 'DELETE_STUDENT', 'students', req.params.regNo, JSON.stringify(existing));
+
+  res.json({ message: 'Student and all related records deleted' });
 });
 
 export default router;

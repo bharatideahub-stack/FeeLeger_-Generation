@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+
+# Runtime data — contains real student records, must not be versioned
+server/data/
+server/uploads/
+
+.env
+.env.local
+*.log

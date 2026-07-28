@@ -2,7 +2,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, FileText, ArrowLeftRight, Settings,
   Upload, History, BookOpen, Layers, Download, ClipboardList,
-  ChevronRight, GraduationCap
+  ChevronRight, GraduationCap, Trash2
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -54,6 +54,12 @@ export default function Sidebar() {
   const { user, logout } = useAuth();
   const location = useLocation();
 
+  const sections: NavSection[] = user?.role === 'superadmin'
+    ? navSections.map(section => section.title === 'Data Management'
+        ? { ...section, items: [...section.items, { to: '/reset-data', label: 'Reset Data', icon: <Trash2 size={16} /> }] }
+        : section)
+    : navSections;
+
   return (
     <aside className="w-64 min-h-screen bg-[#1e3a8a] flex flex-col">
       {/* Logo / Header */}
@@ -71,7 +77,7 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 overflow-y-auto">
-        {navSections.map((section, si) => (
+        {sections.map((section, si) => (
           <div key={si}>
             {section.title && (
               <p className="sidebar-section">{section.title}</p>

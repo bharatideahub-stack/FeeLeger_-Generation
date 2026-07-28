@@ -13,6 +13,7 @@ import importRoutes from './routes/imports';
 import ledgerRoutes from './routes/ledger';
 import dashboardRoutes from './routes/dashboard';
 import adjustmentRoutes from './routes/adjustments';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -41,6 +42,7 @@ app.use('/api/imports', importRoutes);
 app.use('/api/ledger', ledgerRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/adjustments', adjustmentRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {

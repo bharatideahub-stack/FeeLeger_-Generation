@@ -9,6 +9,7 @@ import Transactions from './pages/Transactions';
 import Adjustments from './pages/Adjustments';
 import ImportExcel from './pages/ImportExcel';
 import ImportHistory from './pages/ImportHistory';
+import ResetData from './pages/ResetData';
 import StudentLedger from './pages/StudentLedger';
 import BulkGeneration from './pages/BulkGeneration';
 import GeneratedLedgers from './pages/GeneratedLedgers';
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="generated-ledgers" element={<GeneratedLedgers />} />
         <Route path="import-excel" element={<ImportExcel />} />
         <Route path="import-history" element={<ImportHistory />} />
+        <Route path="reset-data" element={<ResetData />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

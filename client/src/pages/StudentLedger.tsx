@@ -42,7 +42,7 @@ function LedgerPreview({ data }: { data: any }) {
               <div style={{ fontSize: '9px', lineHeight: '1.5' }}>Autonomous Institution - NAAC Accredited</div>
               <div style={{ fontSize: '9px', lineHeight: '1.5' }}>(ETML, UGC) EAPCET Code - 1044</div>
             </td>
-            <td style={{ textAlign: 'center', border: 'none', padding: '14px' }}>
+            <td style={{ textAlign: 'center', verticalAlign: 'top', border: 'none', padding: '20px 14px 14px' }}>
               <span style={{ fontSize: '28px', fontWeight: 'bold', letterSpacing: '3px' }}>FEE LEDGER</span>
             </td>
             <td style={{ width: '18%', border: 'none', padding: '4px 0 4px 4px' }}>
@@ -58,7 +58,7 @@ function LedgerPreview({ data }: { data: any }) {
       </table>
 
       {/* Student Info */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '2px' }}>
         <colgroup>
           <col style={{ width: '13%' }} />
           <col style={{ width: '37%' }} />
@@ -83,7 +83,7 @@ function LedgerPreview({ data }: { data: any }) {
       </table>
 
       {/* Deposit Section */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '16px' }}>
         <colgroup>
           <col style={{ width: '12%' }} /><col style={{ width: '11%' }} /><col style={{ width: '21%' }} /><col style={{ width: '6%' }} />
           <col style={{ width: '12%' }} /><col style={{ width: '11%' }} /><col style={{ width: '21%' }} /><col style={{ width: '6%' }} />
@@ -121,7 +121,7 @@ function LedgerPreview({ data }: { data: any }) {
       ))}
 
       {/* Summary */}
-      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
+      <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '16px' }}>
         <colgroup>
           <col style={{ width: '3%' }} />
           <col style={{ width: '14%' }} />
@@ -177,7 +177,7 @@ function YearSection({ yearSection }: { yearSection: any }) {
   });
 
   return (
-    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '10px' }}>
+    <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '16px' }}>
       <colgroup>
         <col style={{ width: '15%' }} />
         <col style={{ width: '7%' }} />
