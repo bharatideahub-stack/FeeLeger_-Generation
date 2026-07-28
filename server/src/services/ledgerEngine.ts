@@ -120,7 +120,9 @@ export async function buildLedgerData(registrationNo: string): Promise<LedgerDat
       const totalPaid = payments.reduce((s: number, p: any) => s + (p.amount_paid as number), 0);
       let receiptDisplay = '';
       if (payments.length > 0) {
-        const receiptNos = [...new Set(payments.map((p: any) => p.receipt_no).filter(Boolean))];
+        // Fall back to the EasyBuzz (gateway) transaction ID when no receipt number was
+        // recorded — the source data here rarely has receipt_no filled in per-payment.
+        const receiptNos = [...new Set(payments.map((p: any) => p.receipt_no || p.easybuzz_id).filter(Boolean))];
         const dates = payments.map((p: any) => p.payment_date as string).sort();
         const lastDate = dates[dates.length - 1];
         receiptDisplay = receiptNos.length > 0
