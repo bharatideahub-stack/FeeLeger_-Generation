@@ -477,7 +477,7 @@ function formatDisplayDate(dateStr: string): string {
   }
 }
 
-export function generateFeeLedgerPDF(ledgerData: LedgerData): Buffer {
+export function generateFeeLedgerPDF(ledgerData: LedgerData): Promise<Buffer> {
   const chunks: Buffer[] = [];
 
   const doc = new PDFDocument({
@@ -488,7 +488,11 @@ export function generateFeeLedgerPDF(ledgerData: LedgerData): Buffer {
     bufferPages: true,
   });
 
-  doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+  const done = new Promise<Buffer>((resolve, reject) => {
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+  });
 
   const ctx: DrawContext = { doc, y: MARGIN_TOP, pageNo: 1 };
 
@@ -539,7 +543,7 @@ export function generateFeeLedgerPDF(ledgerData: LedgerData): Buffer {
   doc.flushPages();
   doc.end();
 
-  return Buffer.concat(chunks);
+  return done;
 }
 
 function drawMiniHeader(ctx: DrawContext, student: LedgerData['student']): void {
@@ -556,7 +560,7 @@ function drawMiniHeader(ctx: DrawContext, student: LedgerData['student']): void 
   ctx.y = y + h;
 }
 
-export function generateBulkPDF(ledgers: LedgerData[]): Buffer {
+export function generateBulkPDF(ledgers: LedgerData[]): Promise<Buffer> {
   const chunks: Buffer[] = [];
 
   const doc = new PDFDocument({
@@ -567,7 +571,11 @@ export function generateBulkPDF(ledgers: LedgerData[]): Buffer {
     bufferPages: true,
   });
 
-  doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+  const done = new Promise<Buffer>((resolve, reject) => {
+    doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+    doc.on('end', () => resolve(Buffer.concat(chunks)));
+    doc.on('error', reject);
+  });
 
   for (let i = 0; i < ledgers.length; i++) {
     const ledgerData = ledgers[i];
@@ -615,5 +623,5 @@ export function generateBulkPDF(ledgers: LedgerData[]): Buffer {
   doc.flushPages();
   doc.end();
 
-  return Buffer.concat(chunks);
+  return done;
 }

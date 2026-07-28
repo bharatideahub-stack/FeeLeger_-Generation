@@ -96,3 +96,31 @@
 .ledger-table .number-cell {
   text-align: right;
 }
+
+/* Print: show only the ledger preview, nothing else in the app chrome */
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 8mm;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #ledger-print-area,
+  #ledger-print-area * {
+    visibility: visible;
+  }
+
+  #ledger-print-area {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+  }
+}

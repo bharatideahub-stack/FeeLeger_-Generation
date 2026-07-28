@@ -24,7 +24,7 @@ router.get('/student/:regNo', async (req: AuthRequest, res: Response) => {
 router.get('/student/:regNo/pdf', async (req: AuthRequest, res: Response) => {
   try {
     const ledgerData = await buildLedgerData(req.params.regNo);
-    const pdfBuffer = generateFeeLedgerPDF(ledgerData);
+    const pdfBuffer = await generateFeeLedgerPDF(ledgerData);
     const db = getDb();
     await db.run(`INSERT INTO ledger_generation_history (registration_no, generation_type, generated_by) VALUES (?, 'individual', ?)`,
       req.params.regNo, req.user!.id);
@@ -55,7 +55,7 @@ router.post('/bulk/pdf', async (req: AuthRequest, res: Response) => {
     await db.run(`INSERT INTO ledger_generation_history (generation_type, student_count, bulk_criteria, generated_by) VALUES ('bulk', ?, ?, ?)`,
       registration_numbers.length, JSON.stringify(req.body), req.user!.id);
 
-    const pdfBuffer = combined ? generateBulkPDF(ledgers) : generateFeeLedgerPDF(ledgers[0]);
+    const pdfBuffer = combined ? await generateBulkPDF(ledgers) : await generateFeeLedgerPDF(ledgers[0]);
     const fileName = combined ? `bulk_fee_ledgers_${Date.now()}.pdf` : `fee_ledger_${registration_numbers[0]}.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
