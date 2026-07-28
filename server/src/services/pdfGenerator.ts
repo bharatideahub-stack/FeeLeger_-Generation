@@ -140,8 +140,8 @@ function drawPageHeader(ctx: DrawContext): void {
   doc.text('AURORA HIGHER EDUCATION', MARGIN_LEFT, y + 2, { width: leftW, align: 'left', lineBreak: true });
   doc.text('AND RESEARCH ACADEMY', MARGIN_LEFT, y + 17, { width: leftW, align: 'left' });
   doc.font('Helvetica').fontSize(6.5).fillColor('#333333');
-  doc.text('(Deemed-to-be-University Estd. u/s 3 of UGC Act 1956)', MARGIN_LEFT, y + 33, { width: leftW, align: 'left' });
-  doc.text('UPPAL, HYDERABAD - 500 098<', MARGIN_LEFT, y + 42, { width: leftW, align: 'left' });
+  doc.text('(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)', MARGIN_LEFT, y + 33, { width: leftW, align: 'left' });
+  doc.text('UPPAL, HYDERABAD - 500 098', MARGIN_LEFT, y + 42, { width: leftW, align: 'left' });
   doc.restore();
 
   // Title — centered across the full content width
