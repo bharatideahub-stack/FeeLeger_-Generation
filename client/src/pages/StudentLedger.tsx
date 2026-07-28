@@ -24,7 +24,7 @@ function LedgerPreview({ data }: { data: any }) {
   const totalDeposit = deposits?.reduce((s: number, d: any) => s + d.amount, 0) || 0;
 
   return (
-    <div className="ledger-preview bg-white" style={{ width: '100%', fontFamily: 'Arial, Helvetica, sans-serif', fontSize: '13px' }}>
+    <div className="ledger-preview bg-white" style={{ width: '100%', fontFamily: "'Poppins', Arial, Helvetica, sans-serif", fontSize: '13px' }}>
 
       {/* Header */}
       <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: 'none', marginBottom: 0 }}>
@@ -36,19 +36,19 @@ function LedgerPreview({ data }: { data: any }) {
         <tbody>
           <tr>
             <td style={{ width: '20%', border: 'none', padding: '8px', verticalAlign: 'top' }}>
-              <div style={{ fontWeight: 'bold', fontSize: '12.5px', lineHeight: '1.4' }}>AURORA HIGHER EDUCATION</div>
-              <div style={{ fontWeight: 'bold', fontSize: '12.5px' }}>AND RESEARCH ACADEMY</div>
-              <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)</div>
-              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>UPPAL, HYDERABAD - 500 098</div>
+              <div style={{ fontWeight: 'bold', fontSize: '10px', lineHeight: '1.35' }}>AURORA HIGHER EDUCATION</div>
+              <div style={{ fontWeight: 'bold', fontSize: '10px' }}>AND RESEARCH ACADEMY</div>
+              <div style={{ fontSize: '7.5px', marginTop: '3px', lineHeight: '1.45' }}>(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)</div>
+              <div style={{ fontSize: '7.5px', lineHeight: '1.45' }}>UPPAL, HYDERABAD - 500 098</div>
             </td>
-            <td style={{ textAlign: 'center', verticalAlign: 'top', border: 'none', padding: '20px 14px 14px' }}>
-              <span style={{ fontSize: '28px', fontWeight: 'bold', letterSpacing: '3px' }}>FEE LEDGER</span>
+            <td style={{ textAlign: 'center', verticalAlign: 'top', border: 'none', padding: '16px 14px 14px' }}>
+              <span style={{ fontSize: '16px', fontWeight: 'bold', letterSpacing: '2px' }}>FEE LEDGER</span>
             </td>
             <td style={{ width: '18%', border: 'none', padding: '4px 0 4px 4px' }}>
               <img
                 src="/aurora-logo.jpg"
                 alt="Aurora Higher Education and Research Academy"
-                style={{ display: 'block', marginLeft: 'auto', maxWidth: '100%', maxHeight: '78px', objectFit: 'contain' }}
+                style={{ display: 'block', marginLeft: 'auto', maxWidth: '100%', maxHeight: '52px', objectFit: 'contain' }}
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             </td>
@@ -59,10 +59,11 @@ function LedgerPreview({ data }: { data: any }) {
       {/* Student Info */}
       <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '2px' }}>
         <colgroup>
-          <col style={{ width: '13%' }} />
-          <col style={{ width: '37%' }} />
-          <col style={{ width: '13%' }} />
-          <col style={{ width: '37%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '33%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '29%' }} />
+          <col style={{ width: '14%' }} />
         </colgroup>
         <tbody>
           {[
@@ -72,10 +73,13 @@ function LedgerPreview({ data }: { data: any }) {
             ['Date of Joining', formatDate(student.date_of_joining), 'Date of Leaving', formatDate(student.date_of_leaving)],
           ].map(([l1, v1, l2, v2], i) => (
             <tr key={i}>
-              <td style={{ width: '13%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l1}</td>
-              <td style={{ width: '24%', border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v1}</td>
-              <td style={{ width: '13%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l2}</td>
+              <td style={{ backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l1}</td>
+              <td style={{ border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v1}</td>
+              <td style={{ backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l2}</td>
               <td style={{ border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v2}</td>
+              {i === 0 && (
+                <td rowSpan={4} style={{ border: '1px solid #000', backgroundColor: '#f4f8f6' }}></td>
+              )}
             </tr>
           ))}
         </tbody>
