@@ -127,22 +127,22 @@ function LedgerPreview({ data }: { data: any }) {
       <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '16px' }}>
         <colgroup>
           <col style={{ width: '3%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '49%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '33%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '11%' }} />
+          <col style={{ width: '21%' }} />
         </colgroup>
         <tbody>
           <tr>
             <td rowSpan={3} style={{ width: '3%', border: '1px solid #000', padding: '4px', verticalAlign: 'middle', textAlign: 'center', fontSize: '9px', fontWeight: 'bold', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
               Annexed
             </td>
-            <td style={{ width: '14%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Deposit</td>
-            <td style={{ width: '10%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(totalDeposit)}</td>
-            <td style={{ width: '14%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Total Fee</td>
-            <td style={{ width: '10%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(summary.total_fee)}</td>
-            <td rowSpan={3} style={{ border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px', verticalAlign: 'top' }}>Remarks</td>
+            <td style={{ width: '16%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Deposit</td>
+            <td style={{ width: '33%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(totalDeposit)}</td>
+            <td style={{ width: '16%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Total Fee</td>
+            <td style={{ width: '11%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(summary.total_fee)}</td>
+            <td rowSpan={3} style={{ width: '21%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px', verticalAlign: 'top' }}>Remarks</td>
           </tr>
           <tr>
             <td style={{ border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Refund / Adjustment</td>
@@ -220,20 +220,28 @@ function YearSection({ yearSection }: { yearSection: any }) {
         {/* Data Rows */}
         {yearSection.fee_rows.map((feeRow: any) => {
           const totalFixed = Object.values(feeRow.installments).reduce((s: number, inst: any) => s + inst.fee_fixed, 0);
+          const isHeader = !!feeRow.is_special_header;
+          const isSub = !!feeRow.is_special_sub;
+          const rowStyle = isHeader
+            ? { backgroundColor: '#e8e8e8', fontWeight: 'bold' as const }
+            : isSub
+              ? { fontStyle: 'italic' as const, fontSize: '9.5px', color: '#333' }
+              : {};
+          const label = isSub ? `   • ${feeRow.fee_type}` : feeRow.fee_type;
           return (
             <tr key={feeRow.fee_type}>
-              <td style={{ ...cellStyle({ textAlign: 'left', paddingLeft: '8px' }) }}>{feeRow.fee_type}</td>
-              <td style={{ ...cellStyle({ textAlign: 'right' }) }}>{totalFixed ? formatCurrency(totalFixed) : ''}</td>
+              <td style={{ ...cellStyle({ textAlign: 'left', paddingLeft: '8px' }), ...rowStyle }}>{label}</td>
+              <td style={{ ...cellStyle({ textAlign: 'right' }), ...rowStyle }}>{totalFixed ? formatCurrency(totalFixed) : ''}</td>
               {installments.map(inst => {
                 const instData = feeRow.installments[inst] || { total_paid: 0, receipt_display: '' };
                 return (
                   <>
-                    <td key={`fp-${inst}`} style={{ ...cellStyle({ textAlign: 'right' }) }}>{instData.total_paid ? formatCurrency(instData.total_paid) : ''}</td>
-                    <td key={`rd-${inst}`} style={{ ...cellStyle(), fontSize: '9px' }}>{instData.receipt_display || ''}</td>
+                    <td key={`fp-${inst}`} style={{ ...cellStyle({ textAlign: 'right' }), ...rowStyle }}>{instData.total_paid ? formatCurrency(instData.total_paid) : ''}</td>
+                    <td key={`rd-${inst}`} style={{ ...cellStyle(), fontSize: '9px', ...rowStyle }}>{instData.receipt_display || ''}</td>
                   </>
                 );
               })}
-              <td style={cellStyle()}></td>
+              <td style={{ ...cellStyle(), ...rowStyle }}></td>
             </tr>
           );
         })}

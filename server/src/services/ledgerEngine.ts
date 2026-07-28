@@ -22,6 +22,8 @@ export interface InstallmentData {
 export interface FeeRowData {
   fee_type: string;
   installments: { [key: string]: InstallmentData };
+  is_special_header?: boolean;
+  is_special_sub?: boolean;
 }
 
 export interface YearSection {
@@ -55,11 +57,14 @@ const STUDY_YEAR_ORDER = [
   'Freshman Year', 'Sophomore Year', 'Junior Year', 'Senior Year I', 'Senior Year II'
 ];
 
-const FEE_TYPE_ORDER_FRESHMAN = ['Application Fee', 'Registration Fee', 'Tuition Fee', 'Special Fee'];
-const FEE_TYPE_ORDER_OTHER = ['Tuition Fee', 'Special Fee'];
+const SPECIAL_FEE_LABEL = 'Special Fee';
 
-function getFeeOrder(studyYear: string): string[] {
-  return studyYear === 'Freshman Year' ? FEE_TYPE_ORDER_FRESHMAN : FEE_TYPE_ORDER_OTHER;
+// Any fee type other than these gets bucketed under "Special Fee" as a sub-row
+const KNOWN_FEE_TYPES_FRESHMAN = ['Application Fee', 'Registration Fee', 'Tuition Fee'];
+const KNOWN_FEE_TYPES_OTHER = ['Tuition Fee'];
+
+function getKnownFeeTypes(studyYear: string): string[] {
+  return studyYear === 'Freshman Year' ? KNOWN_FEE_TYPES_FRESHMAN : KNOWN_FEE_TYPES_OTHER;
 }
 
 export async function buildLedgerData(registrationNo: string): Promise<LedgerData> {
@@ -101,40 +106,65 @@ export async function buildLedgerData(registrationNo: string): Promise<LedgerDat
   for (const item of feeItems) studyYearsInData.add(item.study_year as string);
   for (const txn of transactions) studyYearsInData.add(txn.study_year as string);
 
+  // Builds installment totals for a row by summing across one or more raw fee types
+  // (a single known type, or all the sub-types folded into the "Special Fee" bucket).
+  function buildInstallments(studyYear: string, feeTypes: string[]): FeeRowData['installments'] {
+    const installmentsData: FeeRowData['installments'] = {};
+    for (const inst of ['I', 'II', 'III', 'IV']) {
+      let feeFix = 0;
+      let payments: any[] = [];
+      for (const ft of feeTypes) {
+        feeFix += feeMap[studyYear]?.[ft]?.[inst] ?? 0;
+        payments = payments.concat(txnMap[studyYear]?.[ft]?.[inst] ?? []);
+      }
+      const totalPaid = payments.reduce((s: number, p: any) => s + (p.amount_paid as number), 0);
+      let receiptDisplay = '';
+      if (payments.length > 0) {
+        // Fall back to the EasyBuzz (gateway) transaction ID when no receipt number was
+        // recorded — the source data here rarely has receipt_no filled in per-payment.
+        const receiptNos = [...new Set(payments.map((p: any) => p.receipt_no || p.easybuzz_id).filter(Boolean))];
+        const dates = payments.map((p: any) => p.payment_date as string).sort();
+        const lastDate = dates[dates.length - 1];
+        receiptDisplay = receiptNos.length > 0
+          ? `${receiptNos[0]}${receiptNos.length > 1 ? '+' : ''} / ${formatDate(lastDate)}`
+          : formatDate(lastDate);
+      }
+      installmentsData[inst] = { fee_fixed: feeFix, payments, total_paid: totalPaid, receipt_display: receiptDisplay };
+    }
+    return installmentsData;
+  }
+
   const yearSections: YearSection[] = [];
   for (const studyYear of STUDY_YEAR_ORDER) {
     if (!studyYearsInData.has(studyYear)) continue;
-    const feeOrder = getFeeOrder(studyYear);
+    const knownFeeTypes = getKnownFeeTypes(studyYear);
     const feeTypesSet = new Set<string>();
     if (feeMap[studyYear]) Object.keys(feeMap[studyYear]).forEach(ft => feeTypesSet.add(ft));
     if (txnMap[studyYear]) Object.keys(txnMap[studyYear]).forEach(ft => feeTypesSet.add(ft));
 
-    const allFeeTypes = [...feeTypesSet].sort((a, b) => {
-      const ai = feeOrder.indexOf(a), bi = feeOrder.indexOf(b);
-      if (ai === -1 && bi === -1) return a.localeCompare(b);
-      if (ai === -1) return 1; if (bi === -1) return -1;
-      return ai - bi;
-    });
+    // Anything not in the known top-level list (Application/Registration/Tuition) is a
+    // "Special Fee" sub-type — it's rolled up under one Special Fee header row, with the
+    // original fee type name kept as a sub-row underneath, instead of its own top-level row.
+    const knownTypesPresent = [...feeTypesSet]
+      .filter(ft => knownFeeTypes.includes(ft))
+      .sort((a, b) => knownFeeTypes.indexOf(a) - knownFeeTypes.indexOf(b));
+    const specialTypesPresent = [...feeTypesSet]
+      .filter(ft => !knownFeeTypes.includes(ft))
+      .sort((a, b) => a.localeCompare(b));
 
     const feeRows: FeeRowData[] = [];
-    for (const feeType of allFeeTypes) {
-      const installmentsData: FeeRowData['installments'] = {};
-      for (const inst of ['I', 'II', 'III', 'IV']) {
-        const feeFix = feeMap[studyYear]?.[feeType]?.[inst] ?? 0;
-        const payments = txnMap[studyYear]?.[feeType]?.[inst] ?? [];
-        const totalPaid = payments.reduce((s: number, p: any) => s + (p.amount_paid as number), 0);
-        let receiptDisplay = '';
-        if (payments.length > 0) {
-          const receiptNos = [...new Set(payments.map((p: any) => p.receipt_no).filter(Boolean))];
-          const dates = payments.map((p: any) => p.payment_date as string).sort();
-          const lastDate = dates[dates.length - 1];
-          receiptDisplay = receiptNos.length > 0
-            ? `${receiptNos[0]}${receiptNos.length > 1 ? '+' : ''} / ${formatDate(lastDate)}`
-            : formatDate(lastDate);
-        }
-        installmentsData[inst] = { fee_fixed: feeFix, payments, total_paid: totalPaid, receipt_display: receiptDisplay };
+    for (const feeType of knownTypesPresent) {
+      feeRows.push({ fee_type: feeType, installments: buildInstallments(studyYear, [feeType]) });
+    }
+    if (specialTypesPresent.length > 0) {
+      feeRows.push({
+        fee_type: SPECIAL_FEE_LABEL,
+        installments: buildInstallments(studyYear, specialTypesPresent),
+        is_special_header: true
+      });
+      for (const feeType of specialTypesPresent) {
+        feeRows.push({ fee_type: feeType, installments: buildInstallments(studyYear, [feeType]), is_special_sub: true });
       }
-      feeRows.push({ fee_type: feeType, installments: installmentsData });
     }
     yearSections.push({ study_year: studyYear, fee_rows: feeRows });
   }
