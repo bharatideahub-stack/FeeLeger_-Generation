@@ -38,9 +38,8 @@ function LedgerPreview({ data }: { data: any }) {
             <td style={{ width: '20%', border: 'none', padding: '8px', verticalAlign: 'top' }}>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px', lineHeight: '1.4' }}>AURORA HIGHER EDUCATION</div>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px' }}>AND RESEARCH ACADEMY</div>
-              <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Sponsored by Pragathi Educational Society, Regd. Est. 1991)</div>
-              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>Autonomous Institution - NAAC Accredited</div>
-              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>(ETML, UGC) EAPCET Code - 1044</div>
+              <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Deemed-to-be-University Estd. u/s 3 of UGC Act 1956)</div>
+              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>UPPAL, HYDERABAD - 500 098</div>
             </td>
             <td style={{ textAlign: 'center', verticalAlign: 'top', border: 'none', padding: '20px 14px 14px' }}>
               <span style={{ fontSize: '28px', fontWeight: 'bold', letterSpacing: '3px' }}>FEE LEDGER</span>
@@ -60,10 +59,10 @@ function LedgerPreview({ data }: { data: any }) {
       {/* Student Info */}
       <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '2px' }}>
         <colgroup>
-          <col style={{ width: '13%' }} />
-          <col style={{ width: '37%' }} />
-          <col style={{ width: '13%' }} />
-          <col style={{ width: '37%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '38%' }} />
+          <col style={{ width: '12%' }} />
+          <col style={{ width: '38%' }} />
         </colgroup>
         <tbody>
           {[
@@ -73,10 +72,10 @@ function LedgerPreview({ data }: { data: any }) {
             ['Date of Joining', formatDate(student.date_of_joining), 'Date of Leaving', formatDate(student.date_of_leaving)],
           ].map(([l1, v1, l2, v2], i) => (
             <tr key={i}>
-              <td style={{ width: '13%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l1}</td>
-              <td style={{ width: '24%', border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v1}</td>
-              <td style={{ width: '13%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l2}</td>
-              <td style={{ border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v2}</td>
+              <td style={{ width: '12%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l1}</td>
+              <td style={{ width: '38%', border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v1}</td>
+              <td style={{ width: '12%', backgroundColor: '#e8e8e8', border: '1px solid #000', padding: '7px 10px', fontWeight: 'bold', fontSize: '12px' }}>{l2}</td>
+              <td style={{ width: '38%', border: '1px solid #000', padding: '7px 10px', fontSize: '12px' }}>{v2}</td>
             </tr>
           ))}
         </tbody>
@@ -124,22 +123,22 @@ function LedgerPreview({ data }: { data: any }) {
       <table style={{ width: '100%', tableLayout: 'fixed', borderCollapse: 'collapse', border: '1px solid #000', marginTop: '16px' }}>
         <colgroup>
           <col style={{ width: '3%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '14%' }} />
-          <col style={{ width: '10%' }} />
-          <col style={{ width: '49%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '33%' }} />
+          <col style={{ width: '16%' }} />
+          <col style={{ width: '11%' }} />
+          <col style={{ width: '21%' }} />
         </colgroup>
         <tbody>
           <tr>
             <td rowSpan={3} style={{ width: '3%', border: '1px solid #000', padding: '4px', verticalAlign: 'middle', textAlign: 'center', fontSize: '9px', fontWeight: 'bold', writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}>
               Annexed
             </td>
-            <td style={{ width: '14%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Deposit</td>
-            <td style={{ width: '10%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(totalDeposit)}</td>
-            <td style={{ width: '14%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Total Fee</td>
-            <td style={{ width: '10%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(summary.total_fee)}</td>
-            <td rowSpan={3} style={{ border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px', verticalAlign: 'top' }}>Remarks</td>
+            <td style={{ width: '16%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Deposit</td>
+            <td style={{ width: '33%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(totalDeposit)}</td>
+            <td style={{ width: '16%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Total Fee</td>
+            <td style={{ width: '11%', border: '1px solid #000', padding: '6px 10px', textAlign: 'right', fontSize: '12px' }}>{formatCurrency(summary.total_fee)}</td>
+            <td rowSpan={3} style={{ width: '21%', border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px', verticalAlign: 'top' }}>Remarks</td>
           </tr>
           <tr>
             <td style={{ border: '1px solid #000', padding: '6px 10px', fontWeight: 'bold', fontSize: '12px' }}>Refund / Adjustment</td>

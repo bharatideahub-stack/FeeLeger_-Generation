@@ -140,9 +140,8 @@ function drawPageHeader(ctx: DrawContext): void {
   doc.text('AURORA HIGHER EDUCATION', MARGIN_LEFT, y + 2, { width: leftW, align: 'left', lineBreak: true });
   doc.text('AND RESEARCH ACADEMY', MARGIN_LEFT, y + 17, { width: leftW, align: 'left' });
   doc.font('Helvetica').fontSize(6.5).fillColor('#333333');
-  doc.text('(Sponsored by Pragathi Educational Society, Regd. Est. 1991)', MARGIN_LEFT, y + 33, { width: leftW, align: 'left' });
-  doc.text('Autonomous Institution - NAAC Accredited', MARGIN_LEFT, y + 42, { width: leftW, align: 'left' });
-  doc.text('(ETML, UGC) EAPCET Code - 1044', MARGIN_LEFT, y + 51, { width: leftW, align: 'left' });
+  doc.text('(Deemed-to-be-University Estd. u/s 3 of UGC Act 1956)', MARGIN_LEFT, y + 33, { width: leftW, align: 'left' });
+  doc.text('UPPAL, HYDERABAD - 500 098<', MARGIN_LEFT, y + 42, { width: leftW, align: 'left' });
   doc.restore();
 
   // Title — centered across the full content width
@@ -169,20 +168,6 @@ function drawPageHeader(ctx: DrawContext): void {
   }
 
   ctx.y = y + headerHeight;
-}
-
-function drawMiniHeader(ctx: DrawContext, student: LedgerData['student']): void {
-  const { doc } = ctx;
-  const y = ctx.y;
-  const h = 22;
-  drawRect(doc, MARGIN_LEFT, y, CONTENT_WIDTH, h, COLOR_HEADER_BG, COLOR_BORDER);
-  doc.font('Helvetica-Bold').fontSize(10).fillColor(COLOR_BLACK);
-  doc.text('FEE LEDGER (Continued)', MARGIN_LEFT + 6, y + 4, { width: CONTENT_WIDTH - 12, align: 'left' });
-  doc.font('Helvetica').fontSize(7.5);
-  doc.text(`Reg. No: ${student.registration_no}   |   Name: ${student.student_name}`, MARGIN_LEFT + 6, y + 14, {
-    width: CONTENT_WIDTH - 12, align: 'left'
-  });
-  ctx.y = y + h;
 }
 
 function drawStudentInfo(ctx: DrawContext, student: LedgerData['student']): void {
@@ -471,10 +456,7 @@ function drawSingleLedger(doc: PDFKit.PDFDocument, ledgerData: LedgerData): void
   ctx.y = MARGIN_TOP;
   ctx.pageNo = 2;
 
-  drawMiniHeader(ctx, ledgerData.student);
-  ctx.y += GAP;
-
-  for (const ys of page2Years) {
+   for (const ys of page2Years) {
     drawYearSection(ctx, ys);
     ctx.y += GAP;
   }
