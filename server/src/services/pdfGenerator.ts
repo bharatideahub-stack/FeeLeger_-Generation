@@ -15,6 +15,16 @@ const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
 const LOGO_PATH = path.join(__dirname, '../../public/aurora-logo.jpg');
 const LOGO_EXISTS = fs.existsSync(LOGO_PATH);
 
+// Poppins — geometric sans matching the rounded letterhead style of the original paper form.
+// Self-hosted, SIL OFL licensed (see client/public/fonts/POPPINS-LICENSE.txt).
+const FONT_REGULAR_PATH = path.join(__dirname, '../assets/fonts/Poppins-Regular.ttf');
+const FONT_BOLD_PATH = path.join(__dirname, '../assets/fonts/Poppins-Bold.ttf');
+
+function registerFonts(doc: PDFKit.PDFDocument): void {
+  doc.registerFont('Poppins-Regular', FONT_REGULAR_PATH);
+  doc.registerFont('Poppins-Bold', FONT_BOLD_PATH);
+}
+
 // Vertical gap left between stacked sections (letterhead, student info, deposits, each year table, summary)
 const GAP = 6;
 
@@ -70,7 +80,7 @@ function drawText(
   } = {}
 ): void {
   const fontSize = opts.fontSize || 8;
-  const font = opts.font || 'Helvetica';
+  const font = opts.font || 'Poppins-Regular';
   const align = (opts.align || 'center') as 'left' | 'center' | 'right';
   const color = opts.color || COLOR_BLACK;
   const valign = opts.valign || 'center';
@@ -130,44 +140,58 @@ function drawCell(
 function drawPageHeader(ctx: DrawContext): void {
   const { doc } = ctx;
   const y = MARGIN_TOP;
-  const headerHeight = 74;
+  const headerHeight = 60;
   const leftW = CONTENT_WIDTH * 0.30;
-  const logoW = CONTENT_WIDTH * 0.16;
+  const logoW = CONTENT_WIDTH * 0.12;
 
   // No box borders here — plain letterhead, matching the on-screen ledger
   doc.save();
-  doc.font('Helvetica-Bold').fontSize(11).fillColor(COLOR_BLACK);
+  doc.font('Poppins-Bold').fontSize(9).fillColor(COLOR_BLACK);
   doc.text('AURORA HIGHER EDUCATION', MARGIN_LEFT, y + 2, { width: leftW, align: 'left', lineBreak: true });
-  doc.text('AND RESEARCH ACADEMY', MARGIN_LEFT, y + 17, { width: leftW, align: 'left' });
-  doc.font('Helvetica').fontSize(6.5).fillColor('#333333');
-  doc.text('(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)', MARGIN_LEFT, y + 33, { width: leftW, align: 'left' });
-  doc.text('UPPAL, HYDERABAD - 500 098', MARGIN_LEFT, y + 42, { width: leftW, align: 'left' });
+  doc.text('AND RESEARCH ACADEMY', MARGIN_LEFT, y + 13, { width: leftW, align: 'left' });
+  doc.font('Poppins-Regular').fontSize(5.5).fillColor('#333333');
+  doc.text('(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)', MARGIN_LEFT, y + 26, { width: leftW, align: 'left' });
+  doc.text('UPPAL, HYDERABAD - 500 098', MARGIN_LEFT, y + 34, { width: leftW, align: 'left' });
   doc.restore();
 
   // Title — centered across the full content width
   doc.save();
-  doc.font('Helvetica-Bold').fontSize(22).fillColor(COLOR_BLACK);
-  doc.text('FEE LEDGER', MARGIN_LEFT, y + 26, { width: CONTENT_WIDTH, align: 'center', characterSpacing: 2 });
+  doc.font('Poppins-Bold').fontSize(12).fillColor(COLOR_BLACK);
+  doc.text('FEE LEDGER', MARGIN_LEFT, y + 20, { width: CONTENT_WIDTH, align: 'center', characterSpacing: 1.5 });
   doc.restore();
 
   // Logo — top-right corner, no box
   const logoX = MARGIN_LEFT + CONTENT_WIDTH - logoW;
   if (LOGO_EXISTS) {
     try {
-      doc.image(LOGO_PATH, logoX, y, { fit: [logoW, headerHeight - 6], align: 'right' });
+      doc.image(LOGO_PATH, logoX, y, { fit: [logoW, headerHeight - 8], align: 'right' });
     } catch {
       /* fall through silently if the image can't be decoded */
     }
   } else {
     doc.save();
-    doc.font('Helvetica-Bold').fontSize(13).fillColor('#1e3a8a');
-    doc.text('AURORA', logoX, y + 22, { width: logoW, align: 'right' });
-    doc.font('Helvetica').fontSize(6.5).fillColor('#666666');
-    doc.text('Higher Education', logoX, y + 38, { width: logoW, align: 'right' });
+    doc.font('Poppins-Bold').fontSize(11).fillColor('#1e3a8a');
+    doc.text('AURORA', logoX, y + 16, { width: logoW, align: 'right' });
+    doc.font('Poppins-Regular').fontSize(5.5).fillColor('#666666');
+    doc.text('Higher Education', logoX, y + 30, { width: logoW, align: 'right' });
     doc.restore();
   }
 
   ctx.y = y + headerHeight;
+}
+
+function drawMiniHeader(ctx: DrawContext, student: LedgerData['student']): void {
+  const { doc } = ctx;
+  const y = ctx.y;
+  const h = 22;
+  drawRect(doc, MARGIN_LEFT, y, CONTENT_WIDTH, h, COLOR_HEADER_BG, COLOR_BORDER);
+  doc.font('Poppins-Bold').fontSize(10).fillColor(COLOR_BLACK);
+  doc.text('FEE LEDGER (Continued)', MARGIN_LEFT + 6, y + 4, { width: CONTENT_WIDTH - 12, align: 'left' });
+  doc.font('Poppins-Regular').fontSize(7.5);
+  doc.text(`Reg. No: ${student.registration_no}   |   Name: ${student.student_name}`, MARGIN_LEFT + 6, y + 14, {
+    width: CONTENT_WIDTH - 12, align: 'left'
+  });
+  ctx.y = y + h;
 }
 
 function drawStudentInfo(ctx: DrawContext, student: LedgerData['student']): void {
@@ -175,10 +199,11 @@ function drawStudentInfo(ctx: DrawContext, student: LedgerData['student']): void
   let y = ctx.y;
 
   const rowH = 22;
+  const photoW = CONTENT_WIDTH * 0.1;
   const col1W = 95;
   const col2W = CONTENT_WIDTH * 0.5 - col1W;
   const col3W = 95;
-  const col4W = CONTENT_WIDTH - col1W - col2W - col3W;
+  const col4W = CONTENT_WIDTH - photoW - col1W - col2W - col3W;
 
   const rows = [
     ['Student Name', student.student_name || '', 'Registration No.', student.registration_no || ''],
@@ -194,21 +219,24 @@ function drawStudentInfo(ctx: DrawContext, student: LedgerData['student']): void
     const rowY = y + i * rowH;
 
     if (i > 0) {
-      doc.moveTo(MARGIN_LEFT, rowY).lineTo(MARGIN_LEFT + CONTENT_WIDTH, rowY).stroke(COLOR_BORDER);
+      doc.moveTo(MARGIN_LEFT, rowY).lineTo(MARGIN_LEFT + CONTENT_WIDTH - photoW, rowY).stroke(COLOR_BORDER);
     }
 
     let x = MARGIN_LEFT;
-    drawCell(doc, l1, x, rowY, col1W, rowH, { fontSize: 8.5, font: 'Helvetica-Bold', align: 'left', bg: COLOR_HEADER_BG, valign: 'center' });
+    drawCell(doc, l1, x, rowY, col1W, rowH, { fontSize: 8.5, font: 'Poppins-Bold', align: 'left', bg: COLOR_HEADER_BG, valign: 'center' });
     x += col1W;
     doc.moveTo(x, rowY).lineTo(x, rowY + rowH).stroke(COLOR_BORDER);
     drawCell(doc, v1, x, rowY, col2W, rowH, { fontSize: 8.5, align: 'left', border: false, valign: 'center' });
     x += col2W;
     doc.moveTo(x, rowY).lineTo(x, rowY + rowH).stroke(COLOR_BORDER);
-    drawCell(doc, l2, x, rowY, col3W, rowH, { fontSize: 8.5, font: 'Helvetica-Bold', align: 'left', bg: COLOR_HEADER_BG, valign: 'center' });
+    drawCell(doc, l2, x, rowY, col3W, rowH, { fontSize: 8.5, font: 'Poppins-Bold', align: 'left', bg: COLOR_HEADER_BG, valign: 'center' });
     x += col3W;
     doc.moveTo(x, rowY).lineTo(x, rowY + rowH).stroke(COLOR_BORDER);
     drawCell(doc, v2, x, rowY, col4W, rowH, { fontSize: 8.5, align: 'left', border: false, valign: 'center' });
   }
+
+  // Photo placeholder box, spanning the full height of the table on the right
+  drawRect(doc, MARGIN_LEFT + CONTENT_WIDTH - photoW, y, photoW, rowH * rows.length, '#f4f8f6', COLOR_BORDER);
 
   ctx.y = y + rowH * rows.length;
 }
@@ -230,13 +258,13 @@ function drawDepositSection(ctx: DrawContext, deposits: LedgerData['deposits']):
     const baseX = MARGIN_LEFT + half * halfW;
     let x = baseX;
 
-    drawCell(doc, 'Deposits', x, y, depColW, headerH, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+    drawCell(doc, 'Deposits', x, y, depColW, headerH, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
     x += depColW;
-    drawCell(doc, 'Amount', x, y, amtColW, headerH, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+    drawCell(doc, 'Amount', x, y, amtColW, headerH, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
     x += amtColW;
-    drawCell(doc, 'Receipt No. & Date', x, y, rcptColW, headerH, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+    drawCell(doc, 'Receipt No. & Date', x, y, rcptColW, headerH, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
     x += rcptColW;
-    drawCell(doc, 'Sign.', x, y, signColW, headerH, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+    drawCell(doc, 'Sign.', x, y, signColW, headerH, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
 
     const dep = deposits[half] || null;
     const ry = y + headerH;
@@ -269,36 +297,36 @@ function drawYearSection(ctx: DrawContext, yearSection: LedgerData['year_section
   let x = MARGIN_LEFT;
   const yearW = COLS.FEE_DETAILS + COLS.FEE_FIXED;
   drawCell(doc, yearSection.study_year, x, y, yearW, headerH1, {
-    fontSize: 9.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'left'
+    fontSize: 9.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'left'
   });
   x += yearW;
 
   for (const inst of installments) {
     const groupW = COLS.INST_FEE_PAID + COLS.INST_RECEIPT;
     drawCell(doc, `Instalment ${inst}`, x, y, groupW, headerH1, {
-      fontSize: 8.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center'
+      fontSize: 8.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center'
     });
     x += groupW;
   }
 
-  drawCell(doc, 'Sign.', x, y, COLS.SIGN, headerH1, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  drawCell(doc, 'Sign.', x, y, COLS.SIGN, headerH1, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
   y += headerH1;
 
   // Header row 2 — sub-labels for every group above
   x = MARGIN_LEFT;
-  drawCell(doc, 'Fee Details', x, y, COLS.FEE_DETAILS, headerH2, { fontSize: 8, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  drawCell(doc, 'Fee Details', x, y, COLS.FEE_DETAILS, headerH2, { fontSize: 8, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
   x += COLS.FEE_DETAILS;
-  drawCell(doc, 'Fee Fixed', x, y, COLS.FEE_FIXED, headerH2, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  drawCell(doc, 'Fee Fixed', x, y, COLS.FEE_FIXED, headerH2, { fontSize: 7.5, font: 'Poppins-Bold', bg: COLOR_SECTION_BG, align: 'center' });
   x += COLS.FEE_FIXED;
 
   for (const _inst of installments) {
-    drawCell(doc, 'Fee Paid', x, y, COLS.INST_FEE_PAID, headerH2, { fontSize: 7, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+    drawCell(doc, 'Fee Paid', x, y, COLS.INST_FEE_PAID, headerH2, { fontSize: 7, font: 'Poppins-Bold', bg: COLOR_HEADER_BG, align: 'center' });
     x += COLS.INST_FEE_PAID;
-    drawCell(doc, 'Receipt No. & Date', x, y, COLS.INST_RECEIPT, headerH2, { fontSize: 6.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+    drawCell(doc, 'Receipt No. & Date', x, y, COLS.INST_RECEIPT, headerH2, { fontSize: 6.5, font: 'Poppins-Bold', bg: COLOR_HEADER_BG, align: 'center' });
     x += COLS.INST_RECEIPT;
   }
 
-  drawCell(doc, 'Asst./Acct.', x, y, COLS.SIGN, headerH2, { fontSize: 6.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+  drawCell(doc, 'Asst./Acct.', x, y, COLS.SIGN, headerH2, { fontSize: 6.5, font: 'Poppins-Bold', bg: COLOR_HEADER_BG, align: 'center' });
 
   y += headerH2;
 
@@ -359,7 +387,7 @@ function drawSummarySection(ctx: DrawContext, summary: LedgerData['summary'], de
   doc.save();
   doc.translate(MARGIN_LEFT + leftW / 2, y + outerH / 2);
   doc.rotate(-90);
-  doc.font('Helvetica-Bold').fontSize(7.5).fillColor(COLOR_BLACK);
+  doc.font('Poppins-Bold').fontSize(7.5).fillColor(COLOR_BLACK);
   doc.text('Annexed', -24, -4, { width: 48, align: 'center' });
   doc.restore();
 
@@ -377,7 +405,7 @@ function drawSummarySection(ctx: DrawContext, summary: LedgerData['summary'], de
     const [label, value] = leftRows[i];
     const ry = y + i * rowH;
     if (i > 0) doc.moveTo(MARGIN_LEFT + leftW, ry).lineTo(MARGIN_LEFT + leftW + midW, ry).stroke(COLOR_BORDER);
-    drawCell(doc, label, MARGIN_LEFT + leftW, ry, labelColW, rowH, { fontSize: 8.5, font: 'Helvetica-Bold', align: 'left', valign: 'center', border: false });
+    drawCell(doc, label, MARGIN_LEFT + leftW, ry, labelColW, rowH, { fontSize: 8.5, font: 'Poppins-Bold', align: 'left', valign: 'center', border: false });
     doc.moveTo(MARGIN_LEFT + leftW + labelColW, ry).lineTo(MARGIN_LEFT + leftW + labelColW, ry + rowH).stroke(COLOR_BORDER);
     drawCell(doc, value, MARGIN_LEFT + leftW + labelColW, ry, valueColW, rowH, {
       fontSize: 8.5, align: 'right', valign: 'center', border: false,
@@ -401,7 +429,7 @@ function drawSummarySection(ctx: DrawContext, summary: LedgerData['summary'], de
     const ry = y + i * rowH;
     const baseX = MARGIN_LEFT + leftW + midW;
     if (i > 0) doc.moveTo(baseX, ry).lineTo(baseX + rightW, ry).stroke(COLOR_BORDER);
-    drawCell(doc, label, baseX, ry, rightLabelW, rowH, { fontSize: 8.5, font: 'Helvetica-Bold', align: 'left', valign: 'center', border: false });
+    drawCell(doc, label, baseX, ry, rightLabelW, rowH, { fontSize: 8.5, font: 'Poppins-Bold', align: 'left', valign: 'center', border: false });
     doc.moveTo(baseX + rightLabelW, ry).lineTo(baseX + rightLabelW, ry + rowH).stroke(COLOR_BORDER);
     drawCell(doc, value, baseX + rightLabelW, ry, rightValueW, rowH, {
       fontSize: 8.5, align: 'right', valign: 'center', border: false,
@@ -410,7 +438,7 @@ function drawSummarySection(ctx: DrawContext, summary: LedgerData['summary'], de
     doc.moveTo(baseX + rightLabelW + rightValueW, ry).lineTo(baseX + rightLabelW + rightValueW, ry + rowH).stroke(COLOR_BORDER);
     if (i === 0) {
       drawCell(doc, 'Remarks', baseX + rightLabelW + rightValueW, ry, rightRemarksW, rowH, {
-        fontSize: 8, font: 'Helvetica-Bold', align: 'center', valign: 'top', border: false
+        fontSize: 8, font: 'Poppins-Bold', align: 'center', valign: 'top', border: false
       });
     }
   }
@@ -427,7 +455,7 @@ function drawSignatureSection(ctx: DrawContext): void {
   for (let i = 0; i < 3; i++) {
     const x = MARGIN_LEFT + i * sigW;
     doc.moveTo(x + 20, y).lineTo(x + sigW - 20, y).stroke(COLOR_BORDER);
-    doc.font('Helvetica').fontSize(8.5).fillColor(COLOR_BLACK);
+    doc.font('Poppins-Regular').fontSize(8.5).fillColor(COLOR_BLACK);
     doc.text(sigs[i], x, y + 5, { width: sigW, align: 'center' });
   }
 }
@@ -496,6 +524,7 @@ export function generateFeeLedgerPDF(ledgerData: LedgerData): Promise<Buffer> {
     autoFirstPage: true,
     bufferPages: true,
   });
+  registerFonts(doc);
 
   const done = new Promise<Buffer>((resolve, reject) => {
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -520,6 +549,7 @@ export function generateBulkPDF(ledgers: LedgerData[]): Promise<Buffer> {
     autoFirstPage: false,
     bufferPages: true,
   });
+  registerFonts(doc);
 
   const done = new Promise<Buffer>((resolve, reject) => {
     doc.on('data', (chunk: Buffer) => chunks.push(chunk));

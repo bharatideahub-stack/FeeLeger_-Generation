@@ -2,6 +2,30 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Geometric sans used for the fee ledger letterhead — matches the rounded style of the
+   original paper form. Self-hosted (SIL OFL licensed), see /fonts/POPPINS-LICENSE.txt */
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-SemiBold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Poppins';
+  src: url('/fonts/Poppins-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 @layer base {
   body {
     @apply bg-gray-50 text-gray-900 font-sans antialiased;
