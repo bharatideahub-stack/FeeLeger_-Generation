@@ -295,27 +295,40 @@ function drawYearSection(ctx: DrawContext, yearSection: LedgerData['year_section
 
   y += groupHeaderH;
 
-  // Data rows
+  // Data rows — "Special Fee" is a bold header row totalling all its sub-types, each of
+  // which is then drawn as an indented, italicized sub-row underneath (see ledgerEngine.ts).
   for (const feeRow of yearSection.fee_rows) {
     x = MARGIN_LEFT;
     const ry = y;
+    const isHeader = !!feeRow.is_special_header;
+    const isSub = !!feeRow.is_special_sub;
+    const rowBg = isHeader ? COLOR_HEADER_BG : undefined;
+    const rowFont = isHeader ? 'Helvetica-Bold' : (isSub ? 'Helvetica-Oblique' : 'Helvetica');
+    const label = isSub ? `   • ${feeRow.fee_type}` : feeRow.fee_type;
 
-    drawCell(doc, feeRow.fee_type, x, ry, COLS.FEE_DETAILS, dataRowH, { fontSize: 8.5, align: 'left', valign: 'center' });
+    drawCell(doc, label, x, ry, COLS.FEE_DETAILS, dataRowH, {
+      fontSize: isSub ? 7.5 : 8.5, font: rowFont, align: 'left', valign: 'center', bg: rowBg,
+      color: isSub ? '#333333' : COLOR_BLACK
+    });
     x += COLS.FEE_DETAILS;
 
     const totalFixed = Object.values(feeRow.installments).reduce((s, inst) => s + inst.fee_fixed, 0);
-    drawCell(doc, totalFixed ? formatCurrency(totalFixed) : '', x, ry, COLS.FEE_FIXED, dataRowH, { fontSize: 8, align: 'right', valign: 'center' });
+    drawCell(doc, totalFixed ? formatCurrency(totalFixed) : '', x, ry, COLS.FEE_FIXED, dataRowH, {
+      fontSize: isSub ? 7.5 : 8, font: rowFont, align: 'right', valign: 'center', bg: rowBg
+    });
     x += COLS.FEE_FIXED;
 
     for (const inst of installments) {
       const instData = feeRow.installments[inst] || { fee_fixed: 0, payments: [], total_paid: 0, receipt_display: '' };
-      drawCell(doc, instData.total_paid ? formatCurrency(instData.total_paid) : '', x, ry, COLS.INST_FEE_PAID, dataRowH, { fontSize: 8, align: 'right', valign: 'center' });
+      drawCell(doc, instData.total_paid ? formatCurrency(instData.total_paid) : '', x, ry, COLS.INST_FEE_PAID, dataRowH, {
+        fontSize: isSub ? 7.5 : 8, font: rowFont, align: 'right', valign: 'center', bg: rowBg
+      });
       x += COLS.INST_FEE_PAID;
-      drawCell(doc, instData.receipt_display || '', x, ry, COLS.INST_RECEIPT, dataRowH, { fontSize: 7, align: 'center', valign: 'center' });
+      drawCell(doc, instData.receipt_display || '', x, ry, COLS.INST_RECEIPT, dataRowH, { fontSize: 7, align: 'center', valign: 'center', bg: rowBg });
       x += COLS.INST_RECEIPT;
     }
 
-    drawCell(doc, '', x, ry, COLS.SIGN, dataRowH, { fontSize: 8, align: 'center', valign: 'center' });
+    drawCell(doc, '', x, ry, COLS.SIGN, dataRowH, { fontSize: 8, align: 'center', valign: 'center', bg: rowBg });
 
     y += dataRowH;
   }

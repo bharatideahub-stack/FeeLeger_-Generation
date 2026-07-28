@@ -220,20 +220,28 @@ function YearSection({ yearSection }: { yearSection: any }) {
         {/* Data Rows */}
         {yearSection.fee_rows.map((feeRow: any) => {
           const totalFixed = Object.values(feeRow.installments).reduce((s: number, inst: any) => s + inst.fee_fixed, 0);
+          const isHeader = !!feeRow.is_special_header;
+          const isSub = !!feeRow.is_special_sub;
+          const rowStyle = isHeader
+            ? { backgroundColor: '#e8e8e8', fontWeight: 'bold' as const }
+            : isSub
+              ? { fontStyle: 'italic' as const, fontSize: '9.5px', color: '#333' }
+              : {};
+          const label = isSub ? `   • ${feeRow.fee_type}` : feeRow.fee_type;
           return (
             <tr key={feeRow.fee_type}>
-              <td style={{ ...cellStyle({ textAlign: 'left', paddingLeft: '8px' }) }}>{feeRow.fee_type}</td>
-              <td style={{ ...cellStyle({ textAlign: 'right' }) }}>{totalFixed ? formatCurrency(totalFixed) : ''}</td>
+              <td style={{ ...cellStyle({ textAlign: 'left', paddingLeft: '8px' }), ...rowStyle }}>{label}</td>
+              <td style={{ ...cellStyle({ textAlign: 'right' }), ...rowStyle }}>{totalFixed ? formatCurrency(totalFixed) : ''}</td>
               {installments.map(inst => {
                 const instData = feeRow.installments[inst] || { total_paid: 0, receipt_display: '' };
                 return (
                   <>
-                    <td key={`fp-${inst}`} style={{ ...cellStyle({ textAlign: 'right' }) }}>{instData.total_paid ? formatCurrency(instData.total_paid) : ''}</td>
-                    <td key={`rd-${inst}`} style={{ ...cellStyle(), fontSize: '9px' }}>{instData.receipt_display || ''}</td>
+                    <td key={`fp-${inst}`} style={{ ...cellStyle({ textAlign: 'right' }), ...rowStyle }}>{instData.total_paid ? formatCurrency(instData.total_paid) : ''}</td>
+                    <td key={`rd-${inst}`} style={{ ...cellStyle(), fontSize: '9px', ...rowStyle }}>{instData.receipt_display || ''}</td>
                   </>
                 );
               })}
-              <td style={cellStyle()}></td>
+              <td style={{ ...cellStyle(), ...rowStyle }}></td>
             </tr>
           );
         })}
