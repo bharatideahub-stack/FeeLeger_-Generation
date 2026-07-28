@@ -188,7 +188,7 @@ function drawStudentInfo(ctx: DrawContext, student: LedgerData['student']): void
   const { doc } = ctx;
   let y = ctx.y;
 
-  const rowH = 18;
+  const rowH = 22;
   const col1W = 95;
   const col2W = CONTENT_WIDTH * 0.5 - col1W;
   const col3W = 95;
@@ -237,8 +237,8 @@ function drawDepositSection(ctx: DrawContext, deposits: LedgerData['deposits']):
   const signColW = halfW * 0.12;
   const rcptColW = halfW - depColW - amtColW - signColW;
 
-  const headerH = 16;
-  const rowH = 20;
+  const headerH = 18;
+  const rowH = 24;
 
   for (let half = 0; half < 2; half++) {
     const baseX = MARGIN_LEFT + half * halfW;
@@ -272,42 +272,49 @@ function drawYearSection(ctx: DrawContext, yearSection: LedgerData['year_section
   const { doc } = ctx;
 
   const installments = ['I', 'II', 'III', 'IV'];
-  const headerH1 = 15; // year title bar
-  const headerH2 = 16; // "Instalment I / II / III / IV" row
-  const headerH3 = 14; // "Fee Paid / Receipt No. & Date" row
-  const dataRowH = 18;
+  const headerH1 = 20; // year name / Instalment I-IV / Sign. row
+  const headerH2 = 18; // Fee Details / Fee Fixed / Fee Paid / Receipt No. & Date / Asst./Acct. row
+  const dataRowH = 26;
 
   let y = ctx.y;
 
-  // Year title bar
-  drawCell(doc, yearSection.study_year, MARGIN_LEFT, y, CONTENT_WIDTH, headerH1, {
-    fontSize: 9.5, font: 'Helvetica-Bold', align: 'left', bg: COLOR_SECTION_BG
-  });
-  y += headerH1;
-
-  // Header row 1: Fee Details / Fee Fixed / Instalment groups / Sign — Fee Details, Fee Fixed and
-  // Sign visually span both header rows (drawn once at full height), Instalment labels sit above
-  // their Fee Paid / Receipt No. & Date sub-columns.
-  const groupHeaderH = headerH2 + headerH3;
+  // Header row 1 — the year name takes the place Fee Details/Fee Fixed would otherwise sit in,
+  // exactly like "Instalment I" sits above "Fee Paid"/"Receipt No. & Date". No separate title bar.
   let x = MARGIN_LEFT;
-  drawCell(doc, 'Fee Details', x, y, COLS.FEE_DETAILS, groupHeaderH, { fontSize: 8.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center', valign: 'center' });
-  x += COLS.FEE_DETAILS;
-  drawCell(doc, 'Fee Fixed', x, y, COLS.FEE_FIXED, groupHeaderH, { fontSize: 8, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center', valign: 'center' });
-  x += COLS.FEE_FIXED;
+  const yearW = COLS.FEE_DETAILS + COLS.FEE_FIXED;
+  drawCell(doc, yearSection.study_year, x, y, yearW, headerH1, {
+    fontSize: 9.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'left'
+  });
+  x += yearW;
 
   for (const inst of installments) {
     const groupW = COLS.INST_FEE_PAID + COLS.INST_RECEIPT;
-    drawCell(doc, `Instalment ${inst}`, x, y, groupW, headerH2, {
-      fontSize: 8.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center'
+    drawCell(doc, `Instalment ${inst}`, x, y, groupW, headerH1, {
+      fontSize: 8.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center'
     });
-    drawCell(doc, 'Fee Paid', x, y + headerH2, COLS.INST_FEE_PAID, headerH3, { fontSize: 7, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
-    drawCell(doc, 'Receipt No. & Date', x + COLS.INST_FEE_PAID, y + headerH2, COLS.INST_RECEIPT, headerH3, { fontSize: 6.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
     x += groupW;
   }
 
-  drawCell(doc, 'Sign.', x, y, COLS.SIGN, groupHeaderH, { fontSize: 7, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center', valign: 'center' });
+  drawCell(doc, 'Sign.', x, y, COLS.SIGN, headerH1, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  y += headerH1;
 
-  y += groupHeaderH;
+  // Header row 2 — sub-labels for every group above
+  x = MARGIN_LEFT;
+  drawCell(doc, 'Fee Details', x, y, COLS.FEE_DETAILS, headerH2, { fontSize: 8, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  x += COLS.FEE_DETAILS;
+  drawCell(doc, 'Fee Fixed', x, y, COLS.FEE_FIXED, headerH2, { fontSize: 7.5, font: 'Helvetica-Bold', bg: COLOR_SECTION_BG, align: 'center' });
+  x += COLS.FEE_FIXED;
+
+  for (const _inst of installments) {
+    drawCell(doc, 'Fee Paid', x, y, COLS.INST_FEE_PAID, headerH2, { fontSize: 7, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+    x += COLS.INST_FEE_PAID;
+    drawCell(doc, 'Receipt No. & Date', x, y, COLS.INST_RECEIPT, headerH2, { fontSize: 6.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+    x += COLS.INST_RECEIPT;
+  }
+
+  drawCell(doc, 'Asst./Acct.', x, y, COLS.SIGN, headerH2, { fontSize: 6.5, font: 'Helvetica-Bold', bg: COLOR_HEADER_BG, align: 'center' });
+
+  y += headerH2;
 
   // Data rows
   for (const feeRow of yearSection.fee_rows) {
@@ -343,7 +350,7 @@ function drawSummarySection(ctx: DrawContext, summary: LedgerData['summary'], de
 
   const totalDeposit = deposits.reduce((s, d) => s + d.amount, 0);
 
-  const outerH = 78;
+  const outerH = 96;
   const leftW = 20;
   const midW = (CONTENT_WIDTH - leftW) / 2;
   const rightW = CONTENT_WIDTH - leftW - midW;
@@ -446,6 +453,7 @@ function drawSingleLedger(doc: PDFKit.PDFDocument, ledgerData: LedgerData): void
   const ctx: DrawContext = { doc, y: MARGIN_TOP, pageNo: 1 };
 
   // ── PAGE 1 ──
+  doc.lineWidth(0.35); // addPage() resets graphics state to PDFKit's 1pt default — keep table lines thin
   drawPageHeader(ctx);
   ctx.y += GAP;
   drawStudentInfo(ctx, ledgerData.student);
@@ -467,6 +475,7 @@ function drawSingleLedger(doc: PDFKit.PDFDocument, ledgerData: LedgerData): void
 
   // ── PAGE 2 ──
   doc.addPage(PAGE_OPTS);
+  doc.lineWidth(0.35);
   ctx.y = MARGIN_TOP;
   ctx.pageNo = 2;
 

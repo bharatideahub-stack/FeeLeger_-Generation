@@ -171,7 +171,7 @@ function LedgerPreview({ data }: { data: any }) {
 function YearSection({ yearSection }: { yearSection: any }) {
   const installments = ['I', 'II', 'III', 'IV'];
   const cellStyle = (extra?: React.CSSProperties): React.CSSProperties => ({
-    border: '1px solid #000', padding: '5px 7px', textAlign: 'center', fontSize: '10.5px',
+    border: '1px solid #000', padding: '6px 8px', textAlign: 'center', fontSize: '11px',
     ...extra
   });
 
@@ -189,33 +189,29 @@ function YearSection({ yearSection }: { yearSection: any }) {
         <col style={{ width: '6%' }} />
       </colgroup>
       <tbody>
-        {/* Year Header */}
+        {/* Column Headers Row 1 — year name takes the place of Fee Details/Fee Fixed */}
         <tr>
-          <td colSpan={2 + installments.length * 2 + 1} style={{ ...cellStyle(), backgroundColor: '#d0d0d0', fontWeight: 'bold', fontSize: '12.5px', textAlign: 'left', paddingLeft: '10px' }}>
+          <td colSpan={2} style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', textAlign: 'left', paddingLeft: '10px' }) }}>
             {yearSection.study_year}
           </td>
-        </tr>
-        {/* Column Headers Row 1 */}
-        <tr>
-          <td rowSpan={2} style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '15%', verticalAlign: 'middle' }) }}>Fee Details</td>
-          <td rowSpan={2} style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '7%', verticalAlign: 'middle' }) }}>Fee Fixed</td>
           {installments.map(inst => (
             <td key={inst} colSpan={2} style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold' }) }}>
               Instalment {inst}
             </td>
           ))}
-          <td rowSpan={2} style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '6%', verticalAlign: 'middle', fontSize: '9px' }) }}>
-            Sign.<br/>Asst.Acct.
-          </td>
+          <td style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold' }) }}>Sign.</td>
         </tr>
-        {/* Column Headers Row 2 */}
+        {/* Column Headers Row 2 — sub-labels for every group above */}
         <tr>
+          <td style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '15%' }) }}>Fee Details</td>
+          <td style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '7%' }) }}>Fee Fixed</td>
           {installments.map(inst => (
             <>
               <td key={`fp-${inst}`} style={{ ...cellStyle({ backgroundColor: '#f0f0f0', fontWeight: 'bold', width: '7%' }), fontSize: '9px' }}>Fee Paid</td>
               <td key={`rd-${inst}`} style={{ ...cellStyle({ backgroundColor: '#f0f0f0', fontWeight: 'bold', width: '11%' }), fontSize: '9px' }}>Receipt No. & Date</td>
             </>
           ))}
+          <td style={{ ...cellStyle({ backgroundColor: '#e8e8e8', fontWeight: 'bold', width: '6%' }), fontSize: '9px' }}>Asst./Acct.</td>
         </tr>
         {/* Data Rows */}
         {yearSection.fee_rows.map((feeRow: any) => {
