@@ -7,6 +7,7 @@ export default function ImportExcel() {
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [result, setResult] = useState<any>(null);
+  const [format, setFormat] = useState<'3' | '2'>('3');
 
   const importMutation = useMutation({
     mutationFn: (file: File) => {
@@ -39,11 +40,13 @@ export default function ImportExcel() {
   };
 
   const downloadTemplate = (blank: boolean) => {
-    api.get(`/imports/template/download?blank=${blank}`, { responseType: 'blob' }).then(res => {
+    const sheetsParam = format === '2' ? '&sheets=2' : '';
+    api.get(`/imports/template/download?blank=${blank}${sheetsParam}`, { responseType: 'blob' }).then(res => {
       const url = URL.createObjectURL(new Blob([res.data], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
       const a = document.createElement('a');
       a.href = url;
-      a.download = blank ? 'fee_ledger_blank_template.xlsx' : 'fee_ledger_sample_template.xlsx';
+      const suffix = format === '2' ? '_2sheet' : '';
+      a.download = blank ? `fee_ledger_blank_template${suffix}.xlsx` : `fee_ledger_sample_template${suffix}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
     });
@@ -78,13 +81,35 @@ export default function ImportExcel() {
         </div>
       </div>
 
+      {/* Format switch */}
+      <div className="flex items-center gap-3 mb-4">
+        <span className="text-sm text-gray-600">Sheet format:</span>
+        <div className="inline-flex rounded-lg border border-gray-200 p-0.5 bg-gray-50">
+          <button
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${format === '3' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
+            onClick={() => setFormat('3')}
+          >
+            3 sheets (Students / Fee_Structure / Transactions)
+          </button>
+          <button
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${format === '2' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500'}`}
+            onClick={() => setFormat('2')}
+          >
+            2 sheets (Students / Fee Details)
+          </button>
+        </div>
+      </div>
+
       {/* Format Info */}
-      <div className="grid grid-cols-3 gap-4 mb-5">
-        {[
+      <div className={`grid gap-4 mb-5 ${format === '3' ? 'grid-cols-3' : 'grid-cols-2'}`}>
+        {(format === '3' ? [
           { sheet: 'Sheet 1: Students', cols: 'Registration No, Student Name, Father\'s Name, School, Department, Program, Campus, Date of Joining, Date of Leaving' },
           { sheet: 'Sheet 2: Fee_Structure', cols: 'Registration No, Academic Year, Study Year, Fee Type, Installment, Fee Amount' },
           { sheet: 'Sheet 3: Transactions', cols: 'Registration No, Payment Date, Academic Year, Study Year, Fee Type, Installment, Amount Paid, Receipt No, EasyBuzz ID, Payment Mode' },
-        ].map(({ sheet, cols }) => (
+        ] : [
+          { sheet: 'Sheet 1: Students', cols: 'Registration No, Student Name, Father\'s Name, School, Department, Program, Campus, Date of Joining, Date of Leaving' },
+          { sheet: 'Sheet 2: Fee Details', cols: 'Registration No, Academic Year, Study Year, Fee Type, Installment, Fee Amount, Amount Paid, Payment Date, Receipt No, EasyBuzz ID, Payment Mode — leave the last 5 columns blank until that installment is actually paid; add another row with the same Fee Type/Installment to log a second partial payment.' },
+        ]).map(({ sheet, cols }) => (
           <div key={sheet} className="card p-4">
             <div className="flex items-center gap-2 mb-2">
               <FileSpreadsheet size={16} className="text-green-600" />

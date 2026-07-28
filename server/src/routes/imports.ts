@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { authenticate, AuthRequest } from '../middleware/auth';
-import { processExcelImport, generateExcelTemplate, generateErrorReport } from '../services/excelService';
+import { processExcelImport, generateExcelTemplate, generateExcelTemplate2Sheet, generateErrorReport } from '../services/excelService';
 import { getDb } from '../database/db';
 
 const router = Router();
@@ -67,11 +67,13 @@ router.post('/upload', upload.single('file'), async (req: AuthRequest, res: Resp
   }
 });
 
-// GET /api/imports/template/download?blank=true
+// GET /api/imports/template/download?blank=true&sheets=2
 router.get('/template/download', (req: AuthRequest, res: Response) => {
   const blank = req.query.blank === 'true';
-  const buffer = generateExcelTemplate(blank);
-  const fileName = blank ? 'fee_ledger_blank_template.xlsx' : 'fee_ledger_sample_template.xlsx';
+  const twoSheet = req.query.sheets === '2';
+  const buffer = twoSheet ? generateExcelTemplate2Sheet(blank) : generateExcelTemplate(blank);
+  const suffix = twoSheet ? '_2sheet' : '';
+  const fileName = blank ? `fee_ledger_blank_template${suffix}.xlsx` : `fee_ledger_sample_template${suffix}.xlsx`;
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
   res.send(buffer);

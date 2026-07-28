@@ -221,6 +221,80 @@ export async function processExcelImport(filePath: string, importedBy: number): 
     }
   }
 
+  // ── SHEET (2-sheet format): Fee Details — one row per fee item, optionally carrying a payment ──
+  // Alternative to separate Fee_Structure + Transactions sheets. A row always sets/updates the fee
+  // amount owed; if Amount Paid is also filled in, that row additionally records a payment (so the
+  // same Fee Type/Installment can appear on multiple rows to log more than one partial payment).
+  const feeDetailsSheet = workbook.Sheets['Fee Details'] || workbook.Sheets['Fee_Details'] || workbook.Sheets['FeeDetails'] || workbook.Sheets['fee details'];
+  if (feeDetailsSheet) {
+    const rows: any[] = XLSX.utils.sheet_to_json(feeDetailsSheet, { defval: '' });
+    totalFeeRecords += rows.length;
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const regNo = cleanStr(row['Registration No'] || row['registration_no']);
+      const academicYear = cleanStr(row['Academic Year'] || row['academic_year']);
+      const studyYear = cleanStr(row['Study Year'] || row['study_year']);
+      const feeType = cleanStr(row['Fee Type'] || row['fee_type']);
+      const installment = cleanStr(row['Installment'] || row['installment']);
+      const feeAmount = cleanNum(row['Fee Amount'] || row['fee_amount']);
+      const amountPaid = cleanNum(row['Amount Paid'] || row['amount_paid']);
+      const paymentDate = excelDateToString(row['Payment Date'] || row['payment_date']);
+      const receiptNo = cleanStr(row['Receipt No'] || row['receipt_no']);
+      const easyBuzzId = cleanStr(row['EasyBuzz ID'] || row['easybuzz_id']);
+      const paymentMode = cleanStr(row['Payment Mode'] || row['payment_mode']);
+
+      if (!regNo || !academicYear || !studyYear || !feeType || !installment || feeAmount === null) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'MISSING_FIELD', message: 'Registration No, Academic Year, Study Year, Fee Type, Installment and Fee Amount are required' });
+        errorRecords++; continue;
+      }
+      if (!VALID_STUDY_YEARS.has(studyYear)) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'INVALID_VALUE', message: `Invalid study year: ${studyYear}` });
+        errorRecords++; continue;
+      }
+      if (!VALID_INSTALLMENTS.has(installment)) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'INVALID_VALUE', message: `Invalid installment: ${installment}` });
+        errorRecords++; continue;
+      }
+      if (feeAmount < 0) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'INVALID_VALUE', message: 'Fee amount cannot be negative' });
+        errorRecords++; continue;
+      }
+
+      const student = await db.get('SELECT id FROM students WHERE registration_no = ?', regNo);
+      if (!student) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'UNMATCHED', message: `Student not found: ${regNo}` });
+        unmatchedRecords++; errorRecords++; continue;
+      }
+
+      try {
+        await db.run(
+          `INSERT INTO fee_structure_items (registration_no, academic_year, study_year, fee_type, installment, fee_amount, import_id) VALUES (?, ?, ?, ?, ?, ?, ?) ON CONFLICT(registration_no, academic_year, study_year, fee_type, installment) DO UPDATE SET fee_amount = excluded.fee_amount`,
+          regNo, academicYear, studyYear, feeType, installment, feeAmount, importId
+        );
+      } catch (err: any) {
+        errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'DB_ERROR', message: err.message });
+        errorRecords++; continue;
+      }
+      validRecords++;
+
+      // Payment columns are optional — only record a transaction if an amount was actually filled in
+      const hasPayment = amountPaid !== null && amountPaid > 0;
+      if (hasPayment) {
+        if (!paymentDate) {
+          errors.push({ sheet: 'Fee Details', row: i + 2, registration_no: regNo, errorType: 'MISSING_FIELD', message: 'Payment Date is required when Amount Paid is filled in' });
+          errorRecords++; continue;
+        }
+        totalTransactions++;
+        await db.run(
+          `INSERT INTO transactions (registration_no, payment_date, academic_year, study_year, fee_type, installment, amount_paid, receipt_no, easybuzz_id, payment_mode, import_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          regNo, paymentDate, academicYear, studyYear, feeType, installment, amountPaid, receiptNo, easyBuzzId, paymentMode, importId
+        );
+        validRecords++;
+      }
+    }
+  }
+
   // Save import errors
   for (const err of errors) {
     await db.run(
@@ -261,6 +335,11 @@ export function generateExcelTemplate(blank: boolean): Buffer {
     ['24A91A0501', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 50000],
     ['24A91A0501', '2024-25', 'Freshman Year', 'Tuition Fee', 'II', 50000],
     ['24A91A0501', '2024-25', 'Freshman Year', 'Special Fee', 'I', 5000],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Application Fee', 'I', 2000],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Registration Fee', 'I', 1000],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 48000],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Tuition Fee', 'II', 48000],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Special Fee', 'I', 4500],
   ];
   const wsFee = XLSX.utils.aoa_to_sheet(feeData);
   wsFee['!cols'] = feeHeaders.map(() => ({ wch: 18 }));
@@ -271,10 +350,53 @@ export function generateExcelTemplate(blank: boolean): Buffer {
     txnHeaders,
     ['24A91A0501', '10-07-2024', '2024-25', 'Freshman Year', 'Application Fee', 'I', 2000, 'REC00101', 'EB001', 'Online'],
     ['24A91A0501', '10-07-2024', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 50000, 'REC00103', 'EB003', 'Online'],
+    ['24A91A0502', '12-07-2024', '2024-25', 'Freshman Year', 'Application Fee', 'I', 2000, 'REC00102', 'EB002', 'Online'],
+    ['24A91A0502', '12-07-2024', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 48000, 'REC00105', 'EB005', 'Online'],
   ];
   const wsTxn = XLSX.utils.aoa_to_sheet(txnData);
   wsTxn['!cols'] = txnHeaders.map(() => ({ wch: 18 }));
   XLSX.utils.book_append_sheet(wb, wsTxn, 'Transactions');
+
+  return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
+}
+
+export function generateExcelTemplate2Sheet(blank: boolean): Buffer {
+  const wb = XLSX.utils.book_new();
+
+  const studentsHeaders = [
+    'Registration No', 'Student Name', "Father's Name", 'School', 'Department', 'Program', 'Campus', 'Date of Joining', 'Date of Leaving'
+  ];
+  const studentsData = blank ? [studentsHeaders] : [
+    studentsHeaders,
+    ['24A91A0501', 'Rahul Kumar', 'Suresh Kumar', 'Engineering', 'CSE', 'B.Tech CSE', 'Uppal', '01-07-2024', ''],
+    ['24A91A0502', 'Priya Sharma', 'Amit Sharma', 'Engineering', 'ECE', 'B.Tech ECE', 'Uppal', '01-07-2024', ''],
+  ];
+  const wsStudents = XLSX.utils.aoa_to_sheet(studentsData);
+  wsStudents['!cols'] = studentsHeaders.map((_h, i) => ({ wch: i === 0 ? 15 : i === 1 || i === 2 ? 20 : 15 }));
+  XLSX.utils.book_append_sheet(wb, wsStudents, 'Students');
+
+  // Fee Details = Fee_Structure + Transactions merged. Payment columns are left blank on rows
+  // that haven't been paid yet — only fill them in once a payment actually happens.
+  const feeDetailsHeaders = [
+    'Registration No', 'Academic Year', 'Study Year', 'Fee Type', 'Installment', 'Fee Amount',
+    'Amount Paid', 'Payment Date', 'Receipt No', 'EasyBuzz ID', 'Payment Mode'
+  ];
+  const feeDetailsData = blank ? [feeDetailsHeaders] : [
+    feeDetailsHeaders,
+    ['24A91A0501', '2024-25', 'Freshman Year', 'Application Fee', 'I', 2000, 2000, '10-07-2024', 'REC00101', 'EB001', 'Online'],
+    ['24A91A0501', '2024-25', 'Freshman Year', 'Registration Fee', 'I', 1000, '', '', '', '', ''],
+    ['24A91A0501', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 50000, 50000, '10-07-2024', 'REC00103', 'EB003', 'Online'],
+    ['24A91A0501', '2024-25', 'Freshman Year', 'Tuition Fee', 'II', 50000, '', '', '', '', ''],
+    ['24A91A0501', '2024-25', 'Freshman Year', 'Special Fee', 'I', 5000, '', '', '', '', ''],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Application Fee', 'I', 2000, 2000, '12-07-2024', 'REC00102', 'EB002', 'Online'],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Registration Fee', 'I', 1000, '', '', '', '', ''],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Tuition Fee', 'I', 48000, 48000, '12-07-2024', 'REC00105', 'EB005', 'Online'],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Tuition Fee', 'II', 48000, '', '', '', '', ''],
+    ['24A91A0502', '2024-25', 'Freshman Year', 'Special Fee', 'I', 4500, '', '', '', '', ''],
+  ];
+  const wsFeeDetails = XLSX.utils.aoa_to_sheet(feeDetailsData);
+  wsFeeDetails['!cols'] = feeDetailsHeaders.map(() => ({ wch: 16 }));
+  XLSX.utils.book_append_sheet(wb, wsFeeDetails, 'Fee Details');
 
   return XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' });
 }

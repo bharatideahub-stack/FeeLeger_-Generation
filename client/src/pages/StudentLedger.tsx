@@ -38,9 +38,8 @@ function LedgerPreview({ data }: { data: any }) {
             <td style={{ width: '20%', border: 'none', padding: '8px', verticalAlign: 'top' }}>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px', lineHeight: '1.4' }}>AURORA HIGHER EDUCATION</div>
               <div style={{ fontWeight: 'bold', fontSize: '12.5px' }}>AND RESEARCH ACADEMY</div>
-              <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Sponsored by Pragathi Educational Society, Regd. Est. 1991)</div>
-              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>Autonomous Institution - NAAC Accredited</div>
-              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>(ETML, UGC) EAPCET Code - 1044</div>
+              <div style={{ fontSize: '9px', marginTop: '4px', lineHeight: '1.5' }}>(Deemed-to-be-University Estd.u/s.03 of UGC Act 1956)</div>
+              <div style={{ fontSize: '9px', lineHeight: '1.5' }}>UPPAL, HYDERABAD - 500 098</div>
             </td>
             <td style={{ textAlign: 'center', verticalAlign: 'top', border: 'none', padding: '20px 14px 14px' }}>
               <span style={{ fontSize: '28px', fontWeight: 'bold', letterSpacing: '3px' }}>FEE LEDGER</span>
